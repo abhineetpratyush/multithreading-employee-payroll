@@ -118,7 +118,35 @@ public class EmployeePayrollService {
 			try {
 				Thread.sleep(10);
 			} catch(InterruptedException e) {
-				log.info("Unable to synchronize");
+				log.info("Unable to sleep");
+			}
+		}
+	}
+
+	public void updateEmployeesSalary(List<EmployeeSalaryNameStructure> employeeNameAndSalaryList) {
+		Map<Integer, Boolean> employeeAdditionStatus = new HashMap<>();
+		employeeNameAndSalaryList.forEach(employeeData ->
+		{
+			Runnable task = () -> {
+				employeeAdditionStatus.put(employeeData.hashCode(), false);
+				log.info("Salary being updated "+Thread.currentThread().getName());
+				try {
+					this.updateEmployeeSalary(employeeData.name, employeeData.salary);
+				} catch (CustomJDBCException e) {
+					log.info("Unable to update salary of employee");
+				}
+				employeeAdditionStatus.put(employeeData.hashCode(), true);
+				log.info("Salary Updated: " + Thread.currentThread().getName());
+			};
+			Thread thread = new Thread(task, employeeData.name);
+			thread.start();
+		}
+				);
+		while(employeeAdditionStatus.containsValue(false)) {
+			try {
+				Thread.sleep(10);
+			} catch(InterruptedException e) {
+				log.info("Unable to sleep");
 			}
 		}
 	}

@@ -119,7 +119,7 @@ public class EmployeePayrollDBService {
 	}
 
 	public int updateEmployeeData(String name, double salary) throws CustomJDBCException {
-		return this.updateEmployeePayrollDataUsingPreparedStatement(name, salary);
+		return this.updateEmployeeDetailsUsingStatement(name, salary);
 	}
 
 	private synchronized int updateEmployeePayrollDataUsingPreparedStatement(String name, double salary) throws CustomJDBCException {
@@ -176,13 +176,63 @@ public class EmployeePayrollDBService {
 	}
 
 	private int updateEmployeeDetailsUsingStatement(String name, double salary) throws CustomJDBCException {
-		String sql = String.format("update employee_payroll set salary = %.2f where name = '%s';", salary, name);
-		try (Connection connection = this.getConnection()){
-			Statement statement = connection.createStatement();
-			return statement.executeUpdate(sql);
+
+		int employeeId = 0, rowsAffected = 0;
+		Connection connection = this.getConnection();
+		try {
+			connection.setAutoCommit(false);
+		} catch (SQLException e2) {
+			throw new CustomJDBCException(ExceptionType.UNABLE_TO_SET_AUTO_COMMIT);
+		}
+		try (Statement statement = connection.createStatement();){
+			String sql = String.format("update employee_payroll set salary = %.2f where name = '%s';", salary, name);
+			statement.executeUpdate(sql);
 		} catch (SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				throw new CustomJDBCException(ExceptionType.UNABLE_TO_ROLLBACK);
+			}
 			throw new CustomJDBCException(ExceptionType.UNABLE_TO_USE_STATEMENT);
 		}
+		try(Statement statement = connection.createStatement()){
+			String sql = String.format("select id from employee_payroll"
+					+ " where name = %s", name);
+			ResultSet resultSet = statement.executeQuery(sql);
+			employeeId = resultSet.getInt("id");
+		}
+		catch(SQLException e)
+		{
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				throw new CustomJDBCException(ExceptionType.UNABLE_TO_ROLLBACK);
+			}
+			throw new CustomJDBCException(ExceptionType.UNABLE_TO_GET_ID);
+		}
+		try(Statement statement = connection.createStatement()){
+			double deductions = salary * 0.2;
+			double taxablePay = salary - deductions;
+			double tax = taxablePay * 0.1;
+			double netPay = salary - tax;
+			String sql = String.format("update payroll_details set basic_pay = %s,"
+					+ "deductions = %s, taxable_pay = %s, tax = %s, net_pay = %s where employee_id = %s", deductions, taxablePay, tax, netPay, employeeId);
+			rowsAffected = statement.executeUpdate(sql);
+		} catch(SQLException e) {
+			try {
+				connection.rollback();
+			} catch (SQLException e1) {
+				throw new CustomJDBCException(ExceptionType.UNABLE_TO_ROLLBACK);
+			}
+			throw new CustomJDBCException(ExceptionType.UNABLE_TO_ADD_RECORD_TO_DB);
+		}
+		try {
+			connection.commit();
+		} catch (SQLException e) {
+
+			throw new CustomJDBCException(ExceptionType.UNABLE_TO_COMMIT);
+		}
+		return rowsAffected;
 	}
 
 	public List<EmployeePayrollData> getEmployeePayrollDataInDateRange(LocalDate startDate, LocalDate endDate) throws CustomJDBCException {

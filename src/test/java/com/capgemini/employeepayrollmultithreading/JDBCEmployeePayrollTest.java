@@ -100,4 +100,18 @@ public class JDBCEmployeePayrollTest {
 		Assert.assertEquals(21, employeePayrollService.countEntries());
 		
 	}
+	
+	@Test
+	public void givenNewSalaryForMultipleEmployees_WhenUpdatedUsingMultithreading_ShouldSyncWithDB() throws CustomJDBCException {
+		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		EmployeeSalaryNameStructure[] arrayOfNameAndSalary = {
+													new EmployeeSalaryNameStructure("Terissa", 4000000.00),
+													new EmployeeSalaryNameStructure("Bill", 2100000.00),
+													new EmployeeSalaryNameStructure("Charlie", 3400000.00)};
+		employeePayrollService.updateEmployeesSalary(Arrays.asList(arrayOfNameAndSalary));
+		boolean resultOne = employeePayrollService.checkEmployeePayrollInSyncWithDB("Terissa");
+		boolean resultTwo = employeePayrollService.checkEmployeePayrollInSyncWithDB("Bill");
+		boolean resultThree = employeePayrollService.checkEmployeePayrollInSyncWithDB("Charlie");
+		Assert.assertTrue(resultOne && resultTwo && resultThree);
+	}
 }

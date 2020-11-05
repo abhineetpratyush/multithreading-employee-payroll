@@ -122,7 +122,7 @@ public class EmployeePayrollDBService {
 		return this.updateEmployeePayrollDataUsingPreparedStatement(name, salary);
 	}
 
-	private int updateEmployeePayrollDataUsingPreparedStatement(String name, double salary) throws CustomJDBCException {
+	private synchronized int updateEmployeePayrollDataUsingPreparedStatement(String name, double salary) throws CustomJDBCException {
 		if(this.preparedStatement==null) {
 			this.prepareStatementForEmployeePayroll();
 		}
@@ -147,7 +147,7 @@ public class EmployeePayrollDBService {
 
 	}
 
-	public List<EmployeePayrollData> getEmployeePayrollDataFromDB(String name) throws CustomJDBCException  {
+	public synchronized List<EmployeePayrollData> getEmployeePayrollDataFromDB(String name) throws CustomJDBCException  {
 		if (this.preparedStatemetForRetrieval == null) {
 			this.prepareStatementForEmployeePayrollDataRetrieval();
 		}

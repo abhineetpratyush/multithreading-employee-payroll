@@ -30,6 +30,7 @@ enum SQLFunctionType{
 }
 
 public class EmployeePayrollDBService {
+	private int connectionCounter = 0;
 	private static final Logger log = LogManager.getLogger(EmployeePayrollDBService.class);
 	private static EmployeePayrollDBService employeePayrollDBService;
 	private PreparedStatement preparedStatement;
@@ -42,15 +43,18 @@ public class EmployeePayrollDBService {
 		}
 		return employeePayrollDBService;
 	}
-	private Connection getConnection() throws CustomJDBCException {
+	private synchronized Connection getConnection() throws CustomJDBCException {
+		connectionCounter++;
 		String jdbcURL = "jdbc:mysql://localhost:3306/payroll_service?useSSL=false";
 		String userName = "root";
 		String password = "abcd4321";
 		Connection connection;
-		log.info("Connecting to database: " + jdbcURL);
+		log.info("Processing Thread: " + Thread.currentThread().getName()+
+				" Connecting to database with Id:" + connectionCounter);
 		try {
 			connection = DriverManager.getConnection(jdbcURL, userName, password);
-			log.info("Connection is successful!! " + connection);
+			log.info("Processing Thread: " + Thread.currentThread().getName()+
+					" Id: " + connectionCounter + " Connection is successful!!" + connection);
 			return connection;
 		} catch (SQLException e) {
 			throw new CustomJDBCException(ExceptionType.SQL_EXCEPTION);

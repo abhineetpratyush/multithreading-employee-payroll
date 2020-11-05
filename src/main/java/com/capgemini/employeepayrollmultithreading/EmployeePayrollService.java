@@ -1,12 +1,13 @@
 package com.capgemini.employeepayrollmultithreading;
 
 import java.time.LocalDate;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import jdk.internal.org.jline.utils.Log;
 
 public class EmployeePayrollService {
 
@@ -91,5 +92,27 @@ public class EmployeePayrollService {
 
 	public int countEntries() {
 		return employeePayrollList.size();
+	}
+
+	public void addEmployeesToPayrollWithThreads(List<EmployeePayrollDataStructrureForThread> employeePayrollDataList) {
+		Map<Integer, Boolean> employeeAdditionStatus = new HashMap<>();
+		employeePayrollDataList.forEach(employeePayrollData ->
+		{
+			Runnable task = () -> {
+				employeeAdditionStatus.put(employeePayrollData.hashCode(), false);
+				log.info("Employee Being Added: "+Thread.currentThread().getName());
+				try {
+					this.addEmployeeToPayroll(employeePayrollData.name, employeePayrollData.salary, employeePayrollData.startDate, 
+							employeePayrollData.gender, employeePayrollData.companyId, employeePayrollData.companyName, employeePayrollData.departmentId);
+				} catch (CustomJDBCException e) {
+					log.info("Unable to add employee to DB");
+				}
+				employeeAdditionStatus.put(employeePayrollData.hashCode(), true);
+				log.info("Employee Added: " + Thread.currentThread().getName());
+			};
+			Thread thread = new Thread(task, employeePayrollData.name);
+			thread.start();
+		}
+				);
 	}
 }

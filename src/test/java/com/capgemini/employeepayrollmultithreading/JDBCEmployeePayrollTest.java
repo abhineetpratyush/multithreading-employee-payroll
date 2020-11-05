@@ -93,6 +93,11 @@ public class JDBCEmployeePayrollTest {
 		employeePayrollService.addEmployeesToPayroll(Arrays.asList(arrayOfEmps));
 		Instant end = Instant.now();
 		log.info("Duration without thread: "+ Duration.between(start, end));
-		Assert.assertEquals(12, employeePayrollService.countEntries());
+		Instant threadStart = Instant.now();
+		employeePayrollService.addEmployeesToPayrollWithThreads(Arrays.asList(arrayOfEmps));
+		Instant threadEnd = Instant.now();
+		log.info("Duration with thread: "+ Duration.between(threadStart, threadEnd));
+		Assert.assertEquals(21, employeePayrollService.countEntries());
+		
 	}
 }

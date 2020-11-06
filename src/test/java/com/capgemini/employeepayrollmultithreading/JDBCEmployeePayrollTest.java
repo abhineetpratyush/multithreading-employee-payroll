@@ -196,4 +196,19 @@ public class JDBCEmployeePayrollTest {
 		Assert.assertEquals(200, statusCode);
 	}
 	
+	@Test
+	public void givenEmployee_WhenDeleted_ShouldMatch200ResponseAndCount() {
+		EmployeePayrollDataForRest[] arraysOfEmps = getEmployeeList();
+		employeePayrollService = new EmployeePayrollService(Arrays.asList(arraysOfEmps));
+		EmployeePayrollDataForRest employeePayrollData = employeePayrollService.getEmployeePayrollDataForRest("Rohan Sharma");
+		RequestSpecification request = RestAssured.given();
+		request.header("Content-Type", "application/json");
+		Response response = request.delete("/employee_payroll/"+employeePayrollData.id);
+		int statusCode = response.getStatusCode();
+		Assert.assertEquals(200, statusCode);
+		
+		employeePayrollService.deleteEmployeePayroll(employeePayrollData.name, IOService.REST_IO);
+		int entries = employeePayrollService.countEntries(IOService.REST_IO);
+		Assert.assertEquals(5, entries);
+	}
 }

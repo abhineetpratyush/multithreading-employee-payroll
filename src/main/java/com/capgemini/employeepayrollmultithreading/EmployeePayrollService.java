@@ -189,4 +189,11 @@ public class EmployeePayrollService {
 			return employeePayrollListForRest.size();
 		return 0;
 	}
+
+	public void deleteEmployeePayroll(String name, IOService ioService) {
+		if(ioService.equals(IOService.REST_IO)) {
+			EmployeePayrollDataForRest employeePayrollData = this.getEmployeePayrollDataForRest(name);
+			employeePayrollListForRest.remove(employeePayrollData);
+		}
+	}
 }

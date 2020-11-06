@@ -66,6 +66,18 @@ public class EmployeePayrollService {
 	public void addEmployeeToPayroll(String name, double salary, LocalDate startDate, String gender, int companyId, String companyName, int departmentId) throws CustomJDBCException {
 		employeePayrollList.add(employeePayrollDBService.addEmployeeToPayroll(name, salary, startDate, gender, companyId, companyName, departmentId));
 	}
+	
+	public void addEmployeeToPayroll(EmployeePayrollDataForRest employeePayrollData, IOService ioService) {
+		if(ioService.equals(IOService.REST_IO)) {
+			this.addEmployeeToPayroll(employeePayrollData.id, employeePayrollData.name, employeePayrollData.salary, 
+					employeePayrollData.startDate, employeePayrollData.gender);
+		}
+		
+	}
+
+	private void addEmployeeToPayroll(int id, String name, double salary, String startDate, String gender) {
+		employeePayrollListForRest.add(new EmployeePayrollDataForRest(id, name, salary, startDate, gender));
+	}
 
 	public void deleteEmployeeFromPayroll(String name) throws CustomJDBCException {
 		employeePayrollList.remove(employeePayrollDBService.deleteEmployeeFromPayroll(name));
@@ -158,7 +170,7 @@ public class EmployeePayrollService {
 	}
 
 	public int countEntries(IOService ioService) {
-		if(ioService == IOService.REST_IO)
+		if(ioService.equals(IOService.REST_IO))
 			return employeePayrollListForRest.size();
 		return 0;
 	}

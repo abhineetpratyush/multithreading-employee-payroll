@@ -5,6 +5,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.groovy.json.internal.IO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
@@ -15,6 +17,7 @@ import com.google.gson.Gson;
 
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 
 
 public class JDBCEmployeePayrollTest {
@@ -134,4 +137,28 @@ public class JDBCEmployeePayrollTest {
 		EmployeePayrollDataForRest[] arrayOfEmps = new Gson().fromJson(response.asString(), EmployeePayrollDataForRest[].class);
 		return arrayOfEmps;
 	}
+	
+	private Response addEmployeeToJsonServer(EmployeePayrollDataForRest employeePayrollData) {
+		String empJson = new Gson().toJson(employeePayrollData);
+		RequestSpecification request = RestAssured.given();
+		request.header("Content-Type", "application/json");
+		request.body(empJson);
+		return request.post("/employee_payroll");
+	}
+	@Test
+	public void givenNewEmployee_WhenAdded_ShouldMatch201ResponseAndCount() {
+		EmployeePayrollDataForRest[] arraysOfEmps = getEmployeeList();
+		employeePayrollService = new EmployeePayrollService(Arrays.asList(arraysOfEmps));
+		EmployeePayrollDataForRest employeePayrollData = new EmployeePayrollDataForRest(3, "Shruti Sharma", 3500.00, "2020-01-05", "F");
+		Response response = addEmployeeToJsonServer(employeePayrollData);
+		int statusCode = response.getStatusCode();
+		Assert.assertEquals(201, statusCode);
+		
+		employeePayrollData = new Gson().fromJson(response.asString(), EmployeePayrollDataForRest.class);
+		employeePayrollService.addEmployeeToPayroll(employeePayrollData, IOService.REST_IO);
+		int entries = employeePayrollService.countEntries(IOService.REST_IO);
+		Assert.assertEquals(3, entries);
+	}
+
+	
 }

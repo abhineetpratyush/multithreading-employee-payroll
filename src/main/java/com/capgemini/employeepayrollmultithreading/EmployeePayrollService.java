@@ -1,6 +1,7 @@
 package com.capgemini.employeepayrollmultithreading;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,10 +17,15 @@ public class EmployeePayrollService {
 	}
 	private EmployeePayrollDBService employeePayrollDBService;
 	private List<EmployeePayrollData> employeePayrollList;
+	private List<EmployeePayrollDataForRest> employeePayrollListForRest;
 	private static final Logger log = LogManager.getLogger(EmployeePayrollService.class);
-
+	
 	public EmployeePayrollService() {
 		this.employeePayrollDBService = EmployeePayrollDBService.getInstance();
+	}
+
+	public EmployeePayrollService(List<EmployeePayrollDataForRest> employeePayrollListForRest) {
+		this.employeePayrollListForRest = new ArrayList<>(employeePayrollListForRest);
 	}
 
 	public List<EmployeePayrollData> readEmployeePayrollData(IOService ioService) throws CustomJDBCException {
@@ -149,5 +155,11 @@ public class EmployeePayrollService {
 				log.info("Unable to sleep");
 			}
 		}
+	}
+
+	public int countEntries(IOService ioService) {
+		if(ioService == IOService.REST_IO)
+			return employeePayrollListForRest.size();
+		return 0;
 	}
 }

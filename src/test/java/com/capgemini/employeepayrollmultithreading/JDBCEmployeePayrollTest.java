@@ -11,6 +11,10 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import com.capgemini.employeepayrollmultithreading.EmployeePayrollService.IOService;
+import com.google.gson.Gson;
+
+import io.restassured.RestAssured;
+import io.restassured.response.Response;
 
 
 public class JDBCEmployeePayrollTest {
@@ -20,8 +24,9 @@ public class JDBCEmployeePayrollTest {
 	@Before
 	public void initialise() {
 		this.employeePayrollService = new EmployeePayrollService();
+		RestAssured.baseURI = "http://localhost";
+		RestAssured.port = 3000;
 	}
-
 
 	@Test
 	public void givenEmployeePayrollInDB_WhenRetrieved_ShouldMatchEmployeeCount() throws CustomJDBCException {
@@ -113,5 +118,20 @@ public class JDBCEmployeePayrollTest {
 		boolean resultTwo = employeePayrollService.checkEmployeePayrollInSyncWithDB("Bill");
 		boolean resultThree = employeePayrollService.checkEmployeePayrollInSyncWithDB("Charlie");
 		Assert.assertTrue(resultOne && resultTwo && resultThree);
+	}
+	
+	@Test
+	public void givenEmployeeDataInJsonServer_WhenRetrieved_ShouldMatchCount() {
+		EmployeePayrollDataForRest[] arraysOfEmps = getEmployeeList();
+		employeePayrollService = new EmployeePayrollService(Arrays.asList(arraysOfEmps));
+		int entries = employeePayrollService.countEntries(IOService.REST_IO);
+		Assert.assertEquals(2, entries);
+	}
+
+	private EmployeePayrollDataForRest[] getEmployeeList() {
+		Response response = RestAssured.get("/employee_payroll");
+		System.out.println("EMPLOYEE PAYROLL ENTRIES IN JSON SERVER\n" + response.asString());
+		EmployeePayrollDataForRest[] arrayOfEmps = new Gson().fromJson(response.asString(), EmployeePayrollDataForRest[].class);
+		return arrayOfEmps;
 	}
 }

@@ -159,6 +159,27 @@ public class JDBCEmployeePayrollTest {
 		int entries = employeePayrollService.countEntries(IOService.REST_IO);
 		Assert.assertEquals(3, entries);
 	}
+	
+	@Test
+	public void givenMuiltipleNewEmployees_WhenAdded_ShouldMatch201ResponseAndCount() {
+		EmployeePayrollDataForRest[] arraysOfEmps = getEmployeeList();
+		employeePayrollService = new EmployeePayrollService(Arrays.asList(arraysOfEmps));
+		EmployeePayrollDataForRest[] arrayOfemployeePayrollData = {
+				new EmployeePayrollDataForRest(4, "Rohan Sharma", 3400.00, "2019-01-05", "F"),
+				new EmployeePayrollDataForRest(5, "Batman Kumar", 2500.00, "2017-01-04", "M"),
+				new EmployeePayrollDataForRest(6, "Spiderman Singh", 9000.00, "2018-01-23", "M"),
+		};
+		for(EmployeePayrollDataForRest employeePayrollData : arrayOfemployeePayrollData) {
+		Response response = addEmployeeToJsonServer(employeePayrollData);
+		int statusCode = response.getStatusCode();
+		Assert.assertEquals(201, statusCode);
+		
+		employeePayrollData = new Gson().fromJson(response.asString(), EmployeePayrollDataForRest.class);
+		employeePayrollService.addEmployeeToPayroll(employeePayrollData, IOService.REST_IO);
+		}
+		int entries = employeePayrollService.countEntries(IOService.REST_IO);
+		Assert.assertEquals(6, entries);
+	}
 
 	
 }

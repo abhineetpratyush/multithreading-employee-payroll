@@ -43,6 +43,21 @@ public class EmployeePayrollService {
 			employeePayrollData.salary = salary;
 	}
 
+	public void updateEmployeeSalary(String name, double salary, IOService ioService) {
+		if(ioService.equals(IOService.REST_IO)) {
+			EmployeePayrollDataForRest employeePayrollData = this.getEmployeePayrollDataForRest(name);
+			if(employeePayrollData != null) 
+				employeePayrollData.salary = salary;
+		}
+	}
+	
+	public EmployeePayrollDataForRest getEmployeePayrollDataForRest(String name) {
+		return this.employeePayrollListForRest.stream()
+				.filter(employeePayrollDataItem -> employeePayrollDataItem.name.equals(name))
+				.findFirst()
+				.orElse(null);
+	}
+	
 	private EmployeePayrollData getEmployeePayrollData(String name) {
 		return this.employeePayrollList.stream()
 				.filter(employeePayrollDataItem -> employeePayrollDataItem.name.equals(name))

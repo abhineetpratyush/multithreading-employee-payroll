@@ -181,5 +181,19 @@ public class JDBCEmployeePayrollTest {
 		Assert.assertEquals(6, entries);
 	}
 
+	@Test
+	public void givenNewSalaryForEmployee_WhenUpdated_ShouldMatch200Response() {
+		EmployeePayrollDataForRest[] arraysOfEmps = getEmployeeList();
+		employeePayrollService = new EmployeePayrollService(Arrays.asList(arraysOfEmps));
+		employeePayrollService.updateEmployeeSalary("Shruti Sharma", 40000.00, IOService.REST_IO);
+		EmployeePayrollDataForRest employeePayrollData = employeePayrollService.getEmployeePayrollDataForRest("Shruti Sharma");
+		String empJson = new Gson().toJson(employeePayrollData);
+		RequestSpecification request = RestAssured.given();
+		request.header("Content-Type", "application/json");
+		request.body(empJson);
+		Response response = request.put("/employee_payroll/"+employeePayrollData.id);
+		int statusCode = response.getStatusCode();
+		Assert.assertEquals(200, statusCode);
+	}
 	
 }
